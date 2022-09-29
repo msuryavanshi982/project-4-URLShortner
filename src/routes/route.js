@@ -1,10 +1,12 @@
-const express = require('express');
-const route = express.Router()
+const express = require('express')
+const router = express.Router()
 const urlController = require('../controllers/urlController');
 
-route.use('/test-me',function(req, res){
-    res.send('Cool hai guys')
-})
+//============================post api for shorten url===================>>>
+router.post('/url/shorten',urlController.shortUrl);
+
+//============================get api for redirect url===================>>>
+router.get('/:urlCode',urlController.getUrl);
 
 
-module.exports = route
+module.exports = router
