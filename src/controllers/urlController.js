@@ -4,7 +4,7 @@ const shortid = require("shortid");
 
 //==================================create-api===========================>>>
 
-const baseUrl = "http:localhost:5000";
+const baseUrl = "http:localhost:3000";
 const shortUrl = async (req, res) => {
   const { longUrl } = req.body;
 
@@ -41,14 +41,13 @@ const shortUrl = async (req, res) => {
 const getUrl = async (req, res) => {
   try {
     let id = req.params.urlCode
-    // console.log("id")
-    // console.log(id)
+
     const url = await Url.findOne({ urlCode:id });
-    console.log(url);
+
     if(!url){
        return res.send("Eroor")
     }
-   return res.send(url)
+   return res.status(302).redirect(url.longUrl)
   } catch (err) {
     console.error(err);
     res.status(500).json("Server Error");

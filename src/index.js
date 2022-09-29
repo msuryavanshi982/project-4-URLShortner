@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.json());
 
-const url = "mongodb+srv://amanmahto:anuragf45@amanscluster.os0m9fw.mongodb.net/group40Database?retryWrites=true&w=majority";
+const url = "mongodb+srv://amanmahto:anuragf45@amanscluster.os0m9fw.mongodb.net/group58Database?retryWrites=true&w=majority";
 const port = process.env.PORT || 3000;
 
 mongoose.connect(url, {useNewUrlParser:true})
