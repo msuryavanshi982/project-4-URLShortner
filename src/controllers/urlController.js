@@ -44,7 +44,6 @@ const shortUrl = async (req, res) => {
   }
 };
 
-//shai hai na?? perfect lag rha hia???
 //==================================get-api==============================>>>
 
 const getUrl = async (req, res) => {
