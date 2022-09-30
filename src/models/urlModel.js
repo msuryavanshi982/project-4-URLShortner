@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const urlSchema = new mongoose.Schema({
     urlCode:{
         type: String,
@@ -21,7 +20,5 @@ const urlSchema = new mongoose.Schema({
         trim:true
     }
 },{timestamps:true})
-
-
 
 module.exports = mongoose.model("Url",urlSchema);

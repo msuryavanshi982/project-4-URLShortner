@@ -2,24 +2,40 @@ const Url = require("../models/urlModel");
 const validUrl = require("valid-url");
 const shortid = require("shortid");
 
+//-------------------url Validation--------------------------->>
+const isEmpty = function (url) {
+  if (typeof url === "undefined" || url === null) return false;
+  if (typeof url === "string" && url.trim().length === 0) return false;
+  return true;
+};
+
 //==================================create-api===========================>>>
 
 const baseUrl = "http:localhost:3000";
+
 const shortUrl = async (req, res) => {
+  try{
   const { longUrl } = req.body;
 
+  if (Object.keys(longUrl).length == 0) {
+    return res.status(400).send({ status: false, message: "Please provide long url in request body" });
+}
+
   if (!validUrl.isUri(baseUrl)) {
-    return res.status(401).json("Invalid base URL");
+    return res.status(401).send({status:false, message:"Invalid base URL"});
   }
 
-  const urlCode = shortid.generate();
+  if (!isEmpty(longUrl)) {
+    return res.status(400).send({ status: false, message: "Please provide long url" });
+}
+const urlCode = shortid.generate();
 
   if (validUrl.isUri(longUrl)) {
-    try {
+    
       let url = await Url.findOne({ longUrl });
 
       if (url) {
-        res.json(url);
+        res.send(url);
       } else {
         const shortUrl = baseUrl + "/" + urlCode;
 
@@ -27,13 +43,13 @@ const shortUrl = async (req, res) => {
         await url.save();
         res.json(url);
       }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json("Server Error");
-    }
+    
   } else {
-    res.status(401).json("Invalid longUrl");
+    res.status(401).send({status:false, message: "Invalid longUrl"});
   }
+}catch (err) {
+  res.status(500).send({status:false, message: err.message});
+}
 };
 
 //==================================get-api==============================>>>
