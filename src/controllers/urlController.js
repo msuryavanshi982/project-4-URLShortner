@@ -1,28 +1,27 @@
-const Url = require("../models/urlModel");
+const UrlModel = require("../models/urlModel");
 const validUrl = require("valid-url");
 const shortid = require("shortid");
-const { isEmpty } = require("../validators/validator");
 const redis = require("redis"); //for reddish
-
-//==================================REDDSIH IMPLEMENTATION===========================>>>
 const { promisify } = require("util");
 
+
+//==================================REDDSIH IMPLEMENTATION===========================>>>
 //Connect to redis
 const redisClient = redis.createClient(
-  13190,
-  "redis-13190.c301.ap-south-1-1.ec2.cloud.redislabs.com",
+  17226,
+  "redis-17226.c264.ap-south-1-1.ec2.cloud.redislabs.com",
   { no_ready_check: true }
 );
-redisClient.auth("gkiOIPkytPI3ADi14jHMSWkZEo2J5TDG", function (err) {
+redisClient.auth("jzCWtKTxipzd6KhMeLwnTkSljdJBaLrB", function (err) {
   if (err) throw err;
 });
 
 redisClient.on("connect", async function () {
-  console.log("Connected to Redis..");
+  console.log("Connected to Redis");
 });
+
 //1. connect to the server
 //2. use the commands :
-
 //Connection setup for redis
 
 const SET_ASYNC = promisify(redisClient.SET).bind(redisClient); //it binds the redis instance to specific interface (hence, IP Address)
@@ -45,7 +44,17 @@ const shortUrl = async (req, res) => {
         .status(401)
         .send({ status: false, message: "Invalid long URL" });
 
-    let urlExist = await Url.findOne({ longUrl });
+    let urldata = await GET_ASYNC(`${longUrl}`);
+    let data = JSON.parse(urldata);
+
+    if (data)
+      return res.status(201).send({
+        status: true,
+        message: `URL is already shortened`,
+        data: data,
+      });
+
+    let urlExist = await UrlModel.findOne({ longUrl });
     if (urlExist) {
       await SET_ASYNC(`${longUrl}`, JSON.stringify(urlExist));
       return res
@@ -78,7 +87,7 @@ const getUrl = async (req, res) => {
       return res.status(302).redirect(JSON.parse(cachedUrlData));
     }
 
-    const url = await Url.findOne({ urlCode: urlCode });
+    const url = await UrlModel.findOne({ urlCode: urlCode });
     if (!url) {
       return res.status(404).send({
         status: false,
