@@ -3,9 +3,10 @@ const validUrl = require("valid-url");
 const shortid = require("shortid");
 const redis = require("redis"); //for reddish
 const { promisify } = require("util");
+const axios = require('axios')
 
-//==================================REDDSIH IMPLEMENTATION===========================>>>
-//Connect to redis
+//==================================REDIS IMPLEMENTATION===========================
+
 const redisClient = redis.createClient(
   17226,
   "redis-17226.c264.ap-south-1-1.ec2.cloud.redislabs.com",
@@ -18,13 +19,8 @@ redisClient.auth("jzCWtKTxipzd6KhMeLwnTkSljdJBaLrB", function (err) {
 redisClient.on("connect", async function () {
   console.log("Connected to Redis");
 });
-
-//1. connect to the server
-//2. use the commands :
-//Connection setup for redis
-
 const SET_ASYNC = promisify(redisClient.SET).bind(redisClient); //it binds the redis instance to specific interface (hence, IP Address)
-const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
+const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);                                                                                                                                     
 
 //==================================create-api===========================>>>
 
@@ -37,11 +33,25 @@ const shortUrl = async (req, res) => {
         status: false,
         message: "Long URL should be present in the request body",
       });
+      
+//validation for correct url
+    let urlFound = false;
+    let Url = {
+      method: "get",
+      url: longUrl,
+    };
 
-    if (!validUrl.isWebUri(longUrl))
+    await axios(Url)
+      .then((res) => {
+        if (res.status == 201 || res.status == 200) urlFound = true;
+      })
+      .catch((err) => {});
+
+    if (urlFound == false) {
       return res
-        .status(401)
-        .send({ status: false, message: "Invalid long URL" });
+        .status(400)
+        .send({ status: false, message: "Invalid URL" });
+    }
 
     let urldata = await GET_ASYNC(`${longUrl}`);
     let data = JSON.parse(urldata);
