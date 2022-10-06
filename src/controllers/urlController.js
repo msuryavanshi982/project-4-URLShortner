@@ -66,7 +66,7 @@ const shortUrl = async (req, res) => {
 
     let result = { longUrl: longUrl, shortUrl: shortUrl, urlCode: urlCode };
 
-    await Url.create(result);
+    await UrlModel.create(result);
     return res
       .status(201)
       .send({ status: true, message: "Created", data: result });
@@ -84,18 +84,19 @@ const getUrl = async (req, res) => {
 
     let data = JSON.parse(urldata);
     if (data) {
-      return res.status(302).redirect(data.longUrl);
-    } else {
-      const getPage = await UrlModel.findOne({ urlCode: urlCode });
+      console.log("from redis")
+      return res.status(302).redirect(data.longUrl);}
 
-      if (getPage) {
-        await SET_ASYNC(`${urlCode}`, JSON.stringify(getPage));
-        return res.status(302).redirect(getPage.longUrl);
-      }
-      return res
-        .status(404)
-        .send({ status: false, message: "url does not exist" });
+    const getPage = await UrlModel.findOne({ urlCode: urlCode });
+    if (getPage) {
+      console.log('from mongodb')
+      await SET_ASYNC(`${urlCode}`, JSON.stringify(getPage));
+      return res.status(302).redirect(getPage.longUrl);
     }
+
+    return res
+      .status(404)
+      .send({ status: false, message: "urlCode does not exist" });
   } catch (err) {
     console.error(err);
     res.status(500).send({ status: false, Error: err.message });
