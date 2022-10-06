@@ -4,7 +4,6 @@ const shortid = require("shortid");
 const redis = require("redis"); //for reddish
 const { promisify } = require("util");
 
-
 //==================================REDDSIH IMPLEMENTATION===========================>>>
 //Connect to redis
 const redisClient = redis.createClient(
@@ -34,7 +33,7 @@ const shortUrl = async (req, res) => {
     const longUrl = req.body.longUrl;
 
     if (!longUrl)
-      return res.status(401).send({
+      return res.status(400).send({
         status: false,
         message: "Long URL should be present in the request body",
       });
@@ -81,24 +80,25 @@ const shortUrl = async (req, res) => {
 const getUrl = async (req, res) => {
   try {
     let urlCode = req.params.urlCode;
+    let urldata = await GET_ASYNC(`${urlCode}`);
 
-    let cachedUrlData = await GET_ASYNC(`${urlCode}`);
-    if (cachedUrlData) {
-      return res.status(302).redirect(JSON.parse(cachedUrlData));
-    }
+    let data = JSON.parse(urldata);
+    if (data) {
+      return res.status(302).redirect(data.longUrl);
+    } else {
+      const getPage = await UrlModel.findOne({ urlCode: urlCode });
 
-    const url = await UrlModel.findOne({ urlCode: urlCode });
-    if (!url) {
-      return res.status(404).send({
-        status: false,
-        message: `This ${urlCode} Url Code is not found.`,
-      });
+      if (getPage) {
+        await SET_ASYNC(`${urlCode}`, JSON.stringify(getPage));
+        return res.status(302).redirect(getPage.longUrl);
+      }
+      return res
+        .status(404)
+        .send({ status: false, message: "url does not exist" });
     }
-    await SET_ASYNC(`${urlCode}`, JSON.stringify(findUrl.longUrl));
-    return res.status(302).redirect(url.longUrl);
   } catch (err) {
     console.error(err);
-   res.status(500).send({ status: false, Error: err.message });
+    res.status(500).send({ status: false, Error: err.message });
   }
 };
 
